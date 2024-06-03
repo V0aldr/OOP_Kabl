@@ -3,6 +3,12 @@
 """
 
 
+class AbortTransaction(Exception):
+    """raise this exception to abort a bank transaction"""
+    pass
+
+
+
 class Account:
     """
     Банковский счёт
@@ -10,14 +16,23 @@ class Account:
 
     def __init__(self, name: str, balance: int = 0.00, password: str = None) -> None:
         self.name = name
-        self.balance = int(balance)
+        self.balance = self.validate_amount(balance)
         self.password = password
+
+    def validate_amount(self, amount):
+        try:
+            amount = int(amount)
+        except ValueError:
+            raise AbortTransaction('Amount must be an integer')
+        if amount <= 0:
+            raise AbortTransaction('Amount must be positive')
+        return amount
+
 
     def check_password(self, password):
         if password != self.password:
             print('Incorrect password'.upper())
-            return False
-        return True
+            raise AbortTransaction('Incorrect password for this account')
 
     def get_balance(self, password):
         if self.check_password(password):
@@ -66,19 +81,19 @@ class Account:
               f'\n\tPress "q "to quit\n')
 
 
-a, b, c = (Account('Alex', 100, '123'),
-           Account('Tonya', 100, '****'),
-           Account('Masha', 100, '1111'))
+if __name__ == '__main__':
+    a, b, c = (Account('Alex', 100, '123'),
+               Account('Tonya', 100, '****'),
+               Account('Masha', 100, '1111'))
 
-assert a.balance == 100.00
-assert b.balance == 100.00
-assert c.balance == 100.00
+    assert a.balance == 100.00
+    assert b.balance == 100.00
+    assert c.balance == 100.00
 
-info = a.show(), b.show(), c.show()
-a.deposit(50, '123')
-b.deposit(999.999, '****')
-c.withdraw(25, '1111')
-str(info)
+    info = a.show(), b.show(), c.show()
+    a.deposit(50, '123')
+    b.deposit(999.999, '****')
+    c.withdraw(25, '1111')
+    str(info)
 
-
-print(f'\n\n{"END":*^82}\n')
+    print(f'\n\n{"END":*^82}\n')
